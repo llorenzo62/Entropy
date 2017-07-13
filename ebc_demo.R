@@ -205,12 +205,13 @@ methods=c('MM','CS','shrink')
 par(mfrow=c(4,3))
 H0=3.5
 dist1='uniform'
+dist2=dist1
 p1=50
 base=1e5
 factor=set_bins('fib',100)
 res=data.frame()
-sa=get_sample(base,dist=dist,Sh=H0)
-sb=get_sample(base,dist=dist,Sh=H0)
+sa=get_sample(base,dist1=dist,Sh=H0)
+sb=get_sample(base,dist2=dist,Sh=H0)
 for (f in append(0,factor)){
     #sa=get_sample(base,dist=dist,p1=(-f),Sh=H0)
     #sb=get_sample(base,dist=dist,p1=f,Sh=H0)
@@ -397,7 +398,8 @@ par(mfrow=c(1,1))
 boxplot(res[4:ncol(res)],ylab='relative error estimate')
 abline(h=c(-0.2,0.0,0.2))
 
-
+library(rgl)
+library(akima)
 au=(1+sqrt(5))/2
 N=10000
 H_ref=c(-10:10)
@@ -407,7 +409,7 @@ par(mfrow=c(1,1))
 for (Shs in H_ref){
     s=get_sample(N,dist='uniform',Sh=Shs)
     Hs=ebc_sample(s,method=method)
-    
+    H=c()
     for (She in H_ref){
         #y=cos(cos((s+au)*(s-au)*(s^2-s+au)))+get_sample(N,dist='normal',Sh=She)
         y=exp(cos((au*pi*s)))+get_sample(N,dist='normal',Sh=She)

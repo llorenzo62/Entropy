@@ -34,3 +34,5 @@ res=explore_I(expression(tan(log(s))),okplot = T,N=5e3,H_ref = c(-10,10),npts=30
 res=explore_I(expression(sinh(log(s))),okplot = T,N=5e3,H_ref = c(-1.5,1.5),npts=30)
 res=explore_I(expression(cosh(log(s))),okplot = T,N=5e3,H_ref = c(-1.5,1.5),npts=30)
 res=explore_I(expression(tanh(log(s))),okplot = T,N=5e3,H_ref =c(-10,10),npts=30)
+
+

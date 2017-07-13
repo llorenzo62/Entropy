@@ -178,18 +178,61 @@ set_bins <- function(base=dyadic,limit=1e4){
 }
 
 
+plateau<-function(sec){
+    #Finds a plateau at the end of the vector sec
+    n=length(sec)
+    lim=(max(sec)-min(sec))/n
+    p=n
+    for (i in (n:2)){
+        if (abs(sec[i]-sec[i-1])<lim && abs(sec[i]-sec[n])<lim){p=i-1}
+        else {break}
+    }
+    return(p)
+}
 
 
 
 evaluate<- function(ML,size,npts=5,D1=1,okplot=FALSE,title='') {
     ok=TRUE
     bottom=1
+    if (okplot) { 
+        plot(size,ML,xlab='-ln(bin size)',ylab='Sh estimate',main=title)
+        abline(v=0)
+        }
+    
+    plt=plateau(ML)
+    if (length(ML)-plt>3) {
+        hplt=mean(ML[plt:length(ML)])
+        print(paste('plateau estimation',hplt))
+        #print(length(ML)-plt+1)
+        #print(length(size[plt:length(size)]))
+        if (okplot) {lines(rep(hplt,length(ML)-plt+1)~size[plt:length(size)],col='green')}
+        cero=min(abs(size))
+        ptcero=1
+        #print(paste(cero,'>',size[ptcero]))
+        while (abs(size[ptcero])>cero && ptcero<length(size)) {
+            #print(paste(cero,'>',size[ptcero]))
+            ptcero=ptcero+1}
+        #print(paste('Pt-0=',ptcero,'fin_pl=',plt))
+        if (plt-ptcero<2) {
+            print('plateau estimation')
+            return(hplt)
+            
+        }
+        else {
+            ML=ML[1:plt]
+            size=size[1:plt]
+        }
+    }
     top=length(ML)
     ntps_max=min(c(12,top-1))
+    if (npts>ntps_max){npts=ntps_max}
     minmax=c(1,0,0)
     inf.a=NaN
-    if (okplot) { plot(size,ML,xlab='-ln(bin size)',ylab='Sh estimate',main=title)}
+    #print(ML)
+    #print(size)
     for (n in c(ntps_max:npts)){
+        #print((length(ML)-n))
         for (bottom in c((length(ML)-n):1)){
             top=bottom+n
             model=lm(ML[bottom:top]~size[bottom:top])
@@ -231,6 +274,7 @@ evaluate<- function(ML,size,npts=5,D1=1,okplot=FALSE,title='') {
         model=lm(ML[bottom:top]~size[bottom:top])
         lines(model$fitted.values~size[bottom:top], col='red')
     } 
+    print(inf.a)
     a=as.numeric(inf.a)
     return(a)
 }
@@ -272,7 +316,7 @@ ebc_sample2d<- function(sx,sy,method='MM',bins=set_bins('dyadic',1e3),okplot=FAL
     }
     tit=paste(method,' (N=',length(sx),')')
     
-    a=evaluate(v,size,npts=npts,D1=2,plot=okplot,title=tit)
+    a=evaluate(v,size,npts=npts,D1=2,okplot=okplot,title=tit)
     return(a[1])
     
 }
@@ -341,23 +385,28 @@ explore_I<-function(func=expression(s),N=1e3,H_ref=c(-5,5),npts=20,okplot=FALSE,
     library('rgl')
     library('akima')
     au=(1+sqrt(5))/2
-    dh=(H_ref[2]-H_ref[1])/npts
-    H_ref=c(0:npts)*dh+H_ref[1]
+    H0_ref=H_ref
+    He_ref=H_ref
+    dh=(H0_ref[2]-H0_ref[1])/npts
+    H0_ref=c(0:npts)*dh+H0_ref[1]
+    dh=(He_ref[2]-He_ref[1])/npts
+    He_ref=c(0:npts)*dh+He_ref[1]
     #H_ref=c(-200:200)/20
     res=data.frame()
     par(mfrow=c(1,1))
-    for (Shs in H_ref){
+    for (Shs in H0_ref){
         s=get_sample(N,dist='uniform',Sh=Shs)
         Hs=ebc_sample(s,method=method)
         
-        for (She in H_ref){
+        for (She in He_ref){
             #y=cos(cos((s+au)*(s-au)*(s^2-s+au)))+get_sample(N,dist='normal',Sh=She)
+            x=She
             y=eval(func)+get_sample(N,dist='normal',Sh=She)
             Hy=ebc_sample(y,method=method)
             Hsy=ebc_sample2d(y,s,method=method,okplot=F)
             print(paste('Hx=',Hs,'  Hy=',Hy,' Hxy=',Hsy))
   
-            a=summary(lm(y~(s)))  
+            a=summary(lm(as.formula(paste('y~',as.character(func)))))  
             
             res=rbind(res,c(a$adj.r.squared,Shs,She,Hs,Hy,Hsy))
             
@@ -367,8 +416,10 @@ explore_I<-function(func=expression(s),N=1e3,H_ref=c(-5,5),npts=20,okplot=FALSE,
     res$I=res$Hx+res$Hy-res$Hxy
     
     if (okplot){
+        
+        #Surface
         co=round(3*abs(res$R2)+1)
-        plot3d(cbind(res$H0x,res$H0e,res$I),type='s',radius=0.05,col=co,
+        plot3d(cbind(res$H0x,res$H0e,res$I),type='s',radius=0.01,col=co,
                main=paste('y=',as.character(func),'+Error'),xlab='H0s',ylab='H0e',zlab='I')
         b=interp(res$H0x,res$H0e,res$R2)
         a=interp(res$H0x,res$H0e,res$I)
@@ -378,18 +429,41 @@ explore_I<-function(func=expression(s),N=1e3,H_ref=c(-5,5),npts=20,okplot=FALSE,
         surface3d(d$x,d$y,d$z,col='grey',alpha=0.75)
         surface3d(a$x,a$y,a$z,col=round(abs(b$z)*3+1))
                
-        plot(res$I~res$R2, ylab='Hx+Hy-Hxy', xlab='adjusted R²')
-        abline(h=ref_pl)
-        a=(res$H0x-res$H0e)
-        plot(res$I~a,xlab='H0s-H0e',ylab='I',col=co,pch=18,
-             main=paste('y=',as.character(func),'+Error'))
-        abline(h=ref_pl,v=0.0)
-        a=(res$Hy-res$Hx)
-        plot(res$I~a,xlab='Hy-Hx',ylab='I',col=co,pch=18,
-             main=paste('y=',as.character(func),'+Error'))
-        abline(h=ref_pl,v=0.0)
-
-               
+        #plot(res$I~res$R2, ylab='Hx+Hy-Hxy', xlab='adjusted R²')
+        #abline(h=ref_pl)
+        #a=(res$H0x-res$H0e)
+        #plot(res$I~a,xlab='H0s-H0e',ylab='I',col=co,pch=18,
+        #     main=paste('y=',as.character(func),'+Error'))
+        #abline(h=ref_pl,v=0.0)
+        #a=(res$Hy-res$Hx)
+        #plot(res$I~a,xlab='Hy-Hx',ylab='I',col=co,pch=18,
+        #     main=paste('y=',as.character(func),'+Error'))
+        #abline(h=ref_pl,v=0.0)
+        
+        
+        
+        #Contour plot H0
+        
+        cH=as.vector(res$I)
+        
+        c=cbind(res$H0x,res$H0e)
+        dv=(ceiling(max(c))-floor(min(c)))/npts
+        v=min(c)+0:(npts-1)*dv
+        minh=min(c)
+        
+        
+        cx=round((c[,1]-minh)/dv)
+        cy=round((c[,2]-minh)/dv)
+        m=matrix(0.0,npts,npts)
+        for (i in c(1:nrow(c))){
+            m[cx[i],cy[i]]=cH[i]
+        }
+        k=min(m)+0:20*(max(m)-min(m))/20
+        filled.contour(v,v,m,levels=k)
+        title(main=paste('Hx+Hy-Hxy  (y=',as.character(func),'+error)'),xlab = 'H0x',ylab='H0e')
+        #print(paste(max(m),min(m)))
+        
+        
     }
     return(res)
     
