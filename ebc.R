@@ -283,6 +283,8 @@ evaluate<- function(ML,size,npts=5,D1=1,okplot=FALSE,title='') {
 
 ebc_sample<- function(sample,method='MM',bins=set_bins('dyadic',1e4),okplot=FALSE,npts=5){
     
+    #sample NaN values: these are converted to 0
+    sample[is.na(sample)]=0.0
     
     size=-log((max(sample)-min(sample))/bins)
     v=c()
@@ -303,7 +305,9 @@ ebc_sample<- function(sample,method='MM',bins=set_bins('dyadic',1e4),okplot=FALS
 
 ebc_sample2d<- function(sx,sy,method='MM',bins=set_bins('dyadic',1e3),okplot=FALSE,npts=5){
     
-    
+    #sample NaN values: these are converted to 0
+    sx[is.na(sx)]=0.0
+    sy[is.na(sy)]=0.0
     R1=max(sx)-min(sx)
     R2=max(sy)-min(sy)
     
@@ -381,7 +385,9 @@ ebc_points2d<- function(sx,sy,method='MM',bins=set_bins('dyadic',5e2),okplot=FAL
 }
 
 
-explore_I<-function(func=expression(s),N=1e3,H_ref=c(-5,5),npts=20,okplot=FALSE,method='CS',ref_pl=c(-0.2,0.2)){
+explore_I<-function(func=expression(s),N=1e3,H_ref=c(-5,5),npts=20,okplot=FALSE
+                    ,method='CS',ref_pl=c(-0.2,0.2),dist_s='normal',dist_e='normal')
+    {
     library('rgl')
     library('akima')
     au=(1+sqrt(5))/2
@@ -395,13 +401,18 @@ explore_I<-function(func=expression(s),N=1e3,H_ref=c(-5,5),npts=20,okplot=FALSE,
     res=data.frame()
     par(mfrow=c(1,1))
     for (Shs in H0_ref){
-        s=get_sample(N,dist='uniform',Sh=Shs)
+        s=get_sample(N,dist=dist_s,Sh=Shs)
         Hs=ebc_sample(s,method=method)
-        
+        if (Shs<(-19)){
+            print(Shs)
+        }
         for (She in He_ref){
             #y=cos(cos((s+au)*(s-au)*(s^2-s+au)))+get_sample(N,dist='normal',Sh=She)
-            x=She
-            y=eval(func)+get_sample(N,dist='normal',Sh=She)
+            if (She<(-19) & (abs(Shs) <=2 )){
+                print(paste(Shs,She))
+            }
+            y=eval(func)
+            y=y+get_sample(N,dist=dist_e,Sh=She)
             Hy=ebc_sample(y,method=method)
             Hsy=ebc_sample2d(y,s,method=method,okplot=F)
             print(paste('Hx=',Hs,'  Hy=',Hy,' Hxy=',Hsy))
@@ -418,9 +429,13 @@ explore_I<-function(func=expression(s),N=1e3,H_ref=c(-5,5),npts=20,okplot=FALSE,
     if (okplot){
         
         #Surface
-        co=round(3*abs(res$R2)+1)
+        cols=c('blue','green','red','black','red','green','blue')
+        co=cols[round(3*(res$R2)+4)]
         plot3d(cbind(res$H0x,res$H0e,res$I),type='s',radius=0.01,col=co,
-               main=paste('y=',as.character(func),'+Error'),xlab='H0s',ylab='H0e',zlab='I')
+               main=paste('y=',as.character(func),'+Error'),
+               xlab = paste('H0x (',dist_s,')'),
+               ylab=paste('H0e (',dist_e,')'),
+               zlab='Ixy')
         b=interp(res$H0x,res$H0e,res$R2)
         a=interp(res$H0x,res$H0e,res$I)
         c=interp(res$H0x,res$H0e,rep(ref_pl[1],nrow(res)))
@@ -460,7 +475,9 @@ explore_I<-function(func=expression(s),N=1e3,H_ref=c(-5,5),npts=20,okplot=FALSE,
         }
         k=min(m)+0:20*(max(m)-min(m))/20
         filled.contour(v,v,m,levels=k)
-        title(main=paste('Hx+Hy-Hxy  (y=',as.character(func),'+error)'),xlab = 'H0x',ylab='H0e')
+        title(main=paste('Hx+Hy-Hxy  (y=',as.character(func),'+error)'),
+              xlab = paste('H0x (',dist_s,')'),
+              ylab=paste('H0e (',dist_e,')'))
         #print(paste(max(m),min(m)))
         
         

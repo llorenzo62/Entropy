@@ -5,7 +5,7 @@ res=explore_I(expression((s+1)*(s-1)),okplot = T,N=5e3,H_ref = c(-10,10),npts=30
 #functions
 res=explore_I(expression(log(s+1)),okplot = T,N=5e3,H_ref = c(-10,10),npts=30)
 res=explore_I(expression(sqrt(s+1)),okplot = T,N=5e3,H_ref = c(-10,10),npts=30)
-res=explore_I(expression(abs(s)),okplot = T,N=5e3,H_ref = c(-10,10),npts=30)
+res=explore_I(expression(exp(-log(s))),okplot = T,N=5e3,H_ref = c(-10,10),npts=30)
 res=explore_I(expression(sin(s+1)),okplot = T,N=5e3,H_ref = c(-10,10),npts=30)
 res=explore_I(expression(cos(s+1)),okplot = T,N=5e3,H_ref = c(-10,10),npts=30)
 res=explore_I(expression(tan(s+1)),okplot = T,N=5e3,H_ref = c(-10,10),npts=30)
@@ -16,7 +16,7 @@ res=explore_I(expression(tanh(s)),okplot = T,N=5e3,H_ref =c(-10,10),npts=30)
 #functions (s+1)*(s-1)
 res=explore_I(expression(log(abs((s+1)*(s-1)))),okplot = T,N=5e3,H_ref = c(-10,10),npts=30)
 res=explore_I(expression(sqrt(abs((s+1)*(s-1)))),okplot = T,N=5e3,H_ref = c(-10,10),npts=30)
-res=explore_I(expression(abs((s+1)*(s-1))),okplot = T,N=5e3,H_ref = c(-10,10),npts=30)
+res=explore_I(expression(exp(-log(abs((s+1)*(s-1))))),okplot = T,N=5e3,H_ref = c(-10,10),npts=30)
 res=explore_I(expression(sin((s+1)*(s-1))),okplot = T,N=5e3,H_ref = c(-10,10),npts=30)
 res=explore_I(expression(cos((s+1)*(s-1))),okplot = T,N=5e3,H_ref = c(-10,10),npts=30)
 res=explore_I(expression(tan((s+1)*(s-1))),okplot = T,N=5e3,H_ref = c(-10,10),npts=30)
@@ -27,7 +27,7 @@ res=explore_I(expression(tanh((s+1)*(s-1))),okplot = T,N=5e3,H_ref =c(-10,10),np
 #functions log(s)
 res=explore_I(expression(log(abs(log(s)))),okplot = T,N=5e3,H_ref = c(-10,10),npts=30)
 res=explore_I(expression(sqrt(abs(log(s)))),okplot = T,N=5e3,H_ref = c(-10,10),npts=30)
-res=explore_I(expression(abs(log(s))),okplot = T,N=5e3,H_ref = c(-10,10),npts=30)
+res=explore_I(expression(exp(-log(abs(log(s))))),okplot = T,N=5e3,H_ref = c(-10,10),npts=30)
 res=explore_I(expression(sin(log(s))),okplot = T,N=5e3,H_ref = c(-10,10),npts=30)
 res=explore_I(expression(cos(log(s))),okplot = T,N=5e3,H_ref = c(-10,10),npts=30)
 res=explore_I(expression(tan(log(s))),okplot = T,N=5e3,H_ref = c(-10,10),npts=30)
@@ -35,4 +35,10 @@ res=explore_I(expression(sinh(log(s))),okplot = T,N=5e3,H_ref = c(-1.5,1.5),npts
 res=explore_I(expression(cosh(log(s))),okplot = T,N=5e3,H_ref = c(-1.5,1.5),npts=30)
 res=explore_I(expression(tanh(log(s))),okplot = T,N=5e3,H_ref =c(-10,10),npts=30)
 
-
+#Frank's functions
+res=explore_I(expression(s+log(s)),okplot = T,N=5e3,H_ref =c(-10,10),npts=30)
+res=explore_I(expression(exp(-log(1+s))),okplot = T,N=5e3,H_ref =c(-10,10),npts=30)
+res=explore_I(expression(exp(-log(1+s*s)/2)),okplot = T,N=5e3,H_ref =c(-10,10),npts=30)
+res=explore_I(expression(exp(-log(s))*exp(-s)),okplot = T,N=5e3,H_ref =c(-10,10),npts=30)
+res=explore_I(expression(exp(-log(s))*exp(-s*s/2)),okplot = T,N=5e3,H_ref =c(-10,10),npts=30)
+res=explore_I(expression(exp(-log(s*s))*exp(-s*s/2)),okplot = T,N=5e3,H_ref =c(-10,10),npts=30)
